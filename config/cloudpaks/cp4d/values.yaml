@@ -1,5 +1,5 @@
 ---
-repoURL: https://github.com/PauloLuchini/cloudpak-gitops
+repoURL: https://github.com/PauloLuchini/cloudpak-gitops-CP4D
 serviceaccount:
   argocd_application_controller: openshift-gitops-argocd-application-controller
 metadata:

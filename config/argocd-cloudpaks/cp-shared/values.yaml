@@ -1,5 +1,5 @@
 ---
-repoURL: https://github.com/PauloLuchini/cloudpak-gitops
+repoURL: https://github.com/PauloLuchini/cloudpak-gitops-CP4D
 targetRevision: Development
 serviceaccount:
   ibm_cloudpaks_installer: ibm-cloudpaks-installer
