@@ -14,7 +14,7 @@ components: "set in parent app"
 storageclass:
   rwo: "set in presync-hook of parent app"
   rwx: "set in presync-hook of parent app"
-targetRevision: main
+targetRevision: Development
 
 iam_integration: "set in presync-hook of parent app"
 image_arch: ""

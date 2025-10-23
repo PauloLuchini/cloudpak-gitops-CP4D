@@ -1,6 +1,6 @@
 ---
 repoURL: https://github.com/PauloLuchini/cloudpak-gitops
-targetRevision: main
+targetRevision: Development
 metadata:
   argocd_namespace: openshift-gitops
 serviceaccount:
