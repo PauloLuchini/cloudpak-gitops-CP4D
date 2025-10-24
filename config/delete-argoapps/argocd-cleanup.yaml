@@ -64,6 +64,6 @@ spec:
             done
 
             echo "======================================"
-            echo " ARGOCD CLEANUP CONCLUÍDO ✅"
+            echo " ARGOCD CLEANUP CONCLUÍDO"
             echo "======================================"
       restartPolicy: Never
