@@ -1,0 +1,69 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: argocd-cleanup-job
+  namespace: openshift-gitops
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: openshift-gitops-argocd-application-controller
+      containers:
+      - name: argocd-cli
+        image: argoproj/argocd:v2.12.1
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        env:
+          - name: ARGOCD_SERVER
+            value: "openshift-gitops-server.openshift-gitops.svc.cluster.local:443"
+          - name: ARGOCD_USERNAME
+            value: "admin"
+          - name: ARGOCD_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: openshift-gitops-cluster
+                key: admin.password
+          - name: HOME
+            value: /tmp
+          - name: ARGOCD_OPTS
+            value: "--insecure"
+        command:
+          - /bin/sh
+          - -c
+          - |
+            echo "======================================"
+            echo " ARGOCD CLEANUP JOB - INICIANDO"
+            echo "======================================"
+
+            echo "=== Fazendo login no ArgoCD interno ==="
+            argocd login $ARGOCD_SERVER \
+              --username $ARGOCD_USERNAME \
+              --password $ARGOCD_PASSWORD \
+              --insecure
+
+            echo "=== Listando apps existentes ==="
+            argocd app list $ARGOCD_OPTS --output name > apps.txt
+            cat apps.txt
+
+            if [ ! -s apps.txt ]; then
+              echo "Nenhum app encontrado. Nada para deletar."
+              exit 0
+            fi
+
+            echo "=== Deletando apps ==="
+            for app in $(cat apps.txt); do
+              echo "Deletando $app ..."
+              argocd app delete $app $ARGOCD_OPTS --cascade --yes
+            done
+
+            echo "======================================"
+            echo " ARGOCD CLEANUP CONCLUÍDO ✅"
+            echo "======================================"
+      restartPolicy: Never
