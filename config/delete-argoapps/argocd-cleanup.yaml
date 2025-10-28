@@ -21,7 +21,7 @@ spec:
 
               echo "=== Instalando argocd CLI ==="
               curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v3.1.9/argocd-linux-amd64
-              chmod +x /usr/local/bin/argocd
+              chmod 755 /usr/local/bin/argocd
 
               echo "=== Fazendo login no ArgoCD interno ==="
               argocd login $ARGOCD_SERVER \
@@ -50,7 +50,7 @@ spec:
                 oc patch app $app -n openshift-gitops --type=merge -p '{"metadata":{"finalizers":[]}}' || true
               done
 
-              echo " ARGOCD CLEANUP CONCLUÍDO"
+              echo "ARGOCD CLEANUP CONCLUÍDO"
           env:
             - name: ARGOCD_SERVER
               value: "openshift-gitops-server.openshift-gitops.svc.cluster.local:443"
