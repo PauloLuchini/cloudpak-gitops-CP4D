@@ -5,6 +5,7 @@ metadata:
   namespace: openshift-gitops
 spec:
   backoffLimit: 0
+  ttlSecondsAfterFinished: 300
   template:
     spec:
       serviceAccountName: openshift-gitops-argocd-application-controller
@@ -17,11 +18,14 @@ spec:
             - /bin/sh
             - -c
             - |
-              echo " ARGOCD CLEANUP JOB - INICIANDO"
+              set -e
+              echo "=== ARGOCD CLEANUP JOB - INICIANDO ==="
 
               echo "=== Instalando argocd CLI ==="
-              wget -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v3.1.9/argocd-linux-amd64
-              chmod 755 /usr/local/bin/argocd
+              mkdir -p /tmp/bin
+              wget -q -O /tmp/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v3.1.9/argocd-linux-amd64
+              chmod +x /tmp/bin/argocd
+              export PATH=$PATH:/tmp/bin
 
               echo "=== Fazendo login no ArgoCD interno ==="
               argocd login $ARGOCD_SERVER \
@@ -30,27 +34,27 @@ spec:
                 --insecure
 
               echo "=== Listando apps existentes ==="
-              argocd app list --output name > apps.txt
-              cat apps.txt || true
+              argocd app list --output name > /tmp/apps.txt
+              cat /tmp/apps.txt || true
 
-              if [ ! -s apps.txt ]; then
+              if [ ! -s /tmp/apps.txt ]; then
                 echo "Nenhum app encontrado. Nada para deletar."
                 exit 0
               fi
 
               echo "=== Deletando apps com cascade + force ==="
-              for app in $(cat apps.txt); do
+              for app in $(cat /tmp/apps.txt); do
                 echo "Deletando $app ..."
                 argocd app delete $app --cascade --yes --force || true
               done
 
               echo "=== Limpando possíveis finalizers travados ==="
-              for app in $(cat apps.txt); do
+              for app in $(cat /tmp/apps.txt); do
                 echo "Removendo finalizers de $app ..."
                 oc patch app $app -n openshift-gitops --type=merge -p '{"metadata":{"finalizers":[]}}' || true
               done
 
-              echo "ARGOCD CLEANUP CONCLUÍDO"
+              echo "=== ARGOCD CLEANUP CONCLUÍDO ✅ ==="
           env:
             - name: ARGOCD_SERVER
               value: "openshift-gitops-server.openshift-gitops.svc.cluster.local:443"
