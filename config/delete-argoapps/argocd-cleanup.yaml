@@ -43,6 +43,9 @@ spec:
               wget -q -O /tmp/argocd https://github.com/argoproj/argo-cd/releases/download/v3.1.9/argocd-linux-amd64
               chmod +x /tmp/argocd
 
+              echo "=== Instalando jq ==="
+              microdnf install -y jq > /dev/null
+              
               echo "=== Fazendo login no ArgoCD interno ==="
               /tmp/argocd login $ARGOCD_SERVER \
                 --username $ARGOCD_USERNAME \
