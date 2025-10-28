@@ -21,20 +21,22 @@ spec:
               set -e
               echo "=== ARGOCD CLEANUP JOB - INICIANDO ==="
 
-              echo "=== Instalando argocd CLI ==="
-              mkdir -p /tmp/bin
-              wget -q -O /tmp/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v3.1.9/argocd-linux-amd64
-              chmod +x /tmp/bin/argocd
-              export PATH=$PATH:/tmp/bin
+              echo "=== Instalando argocd CLI (em /tmp) ==="
+              wget -q -O /tmp/argocd https://github.com/argoproj/argo-cd/releases/download/v3.1.9/argocd-linux-amd64
+              chmod +x /tmp/argocd
+
+              export HOME=/tmp
+              export ARGOCD_CONFIG_DIR=/tmp/.argocd
+              mkdir -p $ARGOCD_CONFIG_DIR
 
               echo "=== Fazendo login no ArgoCD interno ==="
-              argocd login $ARGOCD_SERVER \
+              /tmp/argocd login $ARGOCD_SERVER \
                 --username $ARGOCD_USERNAME \
                 --password $ARGOCD_PASSWORD \
                 --insecure
 
               echo "=== Listando apps existentes ==="
-              argocd app list --output name > /tmp/apps.txt
+              /tmp/argocd app list --output name > /tmp/apps.txt || true
               cat /tmp/apps.txt || true
 
               if [ ! -s /tmp/apps.txt ]; then
@@ -45,7 +47,7 @@ spec:
               echo "=== Deletando apps com cascade + force ==="
               for app in $(cat /tmp/apps.txt); do
                 echo "Deletando $app ..."
-                argocd app delete $app --cascade --yes --force || true
+                /tmp/argocd app delete $app --cascade --yes --force || true
               done
 
               echo "=== Limpando possíveis finalizers travados ==="
