@@ -10,7 +10,7 @@ spec:
       serviceAccountName: openshift-gitops-argocd-application-controller
       containers:
       - name: argocd-cli
-        image: argoproj/argocd:v2.12.1
+        image: argoproj/argocd:v2.6.15
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
