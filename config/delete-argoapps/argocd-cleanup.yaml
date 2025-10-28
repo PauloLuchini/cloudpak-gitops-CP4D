@@ -12,7 +12,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: argocd-cleanup
-          image: registry.redhat.io/openshift4/ose-cli:latest
+          image: registry.redhat.io/openshift4/ubi9/ubi-minimal:latest
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -45,7 +45,7 @@ spec:
 
               echo "=== Instalando jq ==="
               microdnf install -y jq > /dev/null
-              
+
               echo "=== Fazendo login no ArgoCD interno ==="
               /tmp/argocd login $ARGOCD_SERVER \
                 --username $ARGOCD_USERNAME \
@@ -75,7 +75,7 @@ spec:
                 oc patch app $name -n $ns --type=merge -p '{"metadata":{"finalizers":[]}}' || true
               done
 
-              echo "=== ARGOCD CLEANUP CONCLUÍDO ✅ ==="
+              echo "=== ARGOCD CLEANUP CONCLUÍDO  ==="
           env:
             - name: ARGOCD_SERVER
               value: "openshift-gitops-server.openshift-gitops.svc.cluster.local:443"
