@@ -20,7 +20,7 @@ spec:
               echo " ARGOCD CLEANUP JOB - INICIANDO"
 
               echo "=== Instalando argocd CLI ==="
-              curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v3.1.9/argocd-linux-amd64
+              wget -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v3.1.9/argocd-linux-amd64
               chmod 755 /usr/local/bin/argocd
 
               echo "=== Fazendo login no ArgoCD interno ==="
