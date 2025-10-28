@@ -29,13 +29,11 @@ spec:
               set -eo pipefail
               echo "=== ARGOCD CLEANUP JOB - INICIANDO ==="
 
-              # Configuração temporária segura
               export HOME=/tmp
               export ARGOCD_CONFIG_DIR=/tmp/.argocd
               mkdir -p $ARGOCD_CONFIG_DIR
               export KUBECONFIG=/tmp/kubeconfig
 
-              # Login no cluster via ServiceAccount
               api_url=$(oc get Infrastructure cluster -o jsonpath='{.status.apiServerURL}')
               oc login "${api_url}" --token="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" --insecure-skip-tls-verify
 
@@ -58,19 +56,21 @@ spec:
                 exit 0
               fi
 
-              echo "=== Deletando apps com cascade + force ==="
+              echo "=== Deletando apps com cascade ==="
               for app in $(cat /tmp/apps.txt); do
                 echo "Deletando $app ..."
-                /tmp/argocd app delete $app --cascade --yes --force || true
+                /tmp/argocd app delete $app --cascade --yes || true
               done
 
               echo "=== Limpando possíveis finalizers travados ==="
               for app in $(cat /tmp/apps.txt); do
+                ns=$(echo $app | cut -d'/' -f1)
+                name=$(echo $app | cut -d'/' -f2)
                 echo "Removendo finalizers de $app ..."
-                oc patch app $app -n openshift-gitops --type=merge -p '{"metadata":{"finalizers":[]}}' || true
+                oc patch app $name -n $ns --type=merge -p '{"metadata":{"finalizers":[]}}' || true
               done
 
-              echo "=== ARGOCD CLEANUP CONCLUÍDO ✅ ==="
+              echo "=== ARGOCD CLEANUP CONCLUÍDO  ==="
           env:
             - name: ARGOCD_SERVER
               value: "openshift-gitops-server.openshift-gitops.svc.cluster.local:443"
