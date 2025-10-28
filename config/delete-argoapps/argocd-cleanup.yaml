@@ -38,9 +38,7 @@ spec:
           - /bin/sh
           - -c
           - |
-            echo "======================================"
             echo " ARGOCD CLEANUP JOB - INICIANDO"
-            echo "======================================"
 
             echo "=== Fazendo login no ArgoCD interno ==="
             argocd login $ARGOCD_SERVER \
@@ -58,12 +56,12 @@ spec:
             fi
 
             echo "=== Deletando apps ==="
-            for app in $(cat apps.txt); do
-              echo "Deletando $app ..."
-              argocd app delete $app $ARGOCD_OPTS --cascade --yes
+            for app in $(kubectl get applications -n openshift-gitops -o name); do
+              if kubectl get $app -n openshift-gitops | grep -q 'Deleting'; then
+                echo "Removendo finalizer de $app travado..."
+                kubectl patch $app -n openshift-gitops -p '{"metadata":{"finalizers":null}}' --type=merge
+              fi
             done
 
-            echo "======================================"
             echo " ARGOCD CLEANUP CONCLUÍDO"
-            echo "======================================"
       restartPolicy: Never
