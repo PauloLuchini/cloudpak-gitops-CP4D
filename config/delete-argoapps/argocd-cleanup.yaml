@@ -14,20 +14,34 @@ spec:
         - name: argocd-cleanup
           image: registry.redhat.io/openshift4/ose-cli:latest
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           command:
-            - /bin/sh
+            - /bin/bash
             - -c
             - |
-              set -e
+              set -eo pipefail
               echo "=== ARGOCD CLEANUP JOB - INICIANDO ==="
 
-              echo "=== Instalando argocd CLI (em /tmp) ==="
-              wget -q -O /tmp/argocd https://github.com/argoproj/argo-cd/releases/download/v3.1.9/argocd-linux-amd64
-              chmod +x /tmp/argocd
-
+              # Configuração temporária segura
               export HOME=/tmp
               export ARGOCD_CONFIG_DIR=/tmp/.argocd
               mkdir -p $ARGOCD_CONFIG_DIR
+              export KUBECONFIG=/tmp/kubeconfig
+
+              # Login no cluster via ServiceAccount
+              api_url=$(oc get Infrastructure cluster -o jsonpath='{.status.apiServerURL}')
+              oc login "${api_url}" --token="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" --insecure-skip-tls-verify
+
+              echo "=== Instalando ArgoCD CLI ==="
+              wget -q -O /tmp/argocd https://github.com/argoproj/argo-cd/releases/download/v3.1.9/argocd-linux-amd64
+              chmod +x /tmp/argocd
 
               echo "=== Fazendo login no ArgoCD interno ==="
               /tmp/argocd login $ARGOCD_SERVER \
@@ -67,11 +81,3 @@ spec:
                 secretKeyRef:
                   name: openshift-gitops-cluster
                   key: admin.password
-          securityContext:
-            allowPrivilegeEscalation: false
-            runAsNonRoot: true
-            capabilities:
-              drop:
-                - ALL
-            seccompProfile:
-              type: RuntimeDefault
