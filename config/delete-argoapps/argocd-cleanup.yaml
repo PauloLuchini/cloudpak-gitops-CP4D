@@ -8,60 +8,64 @@ spec:
   template:
     spec:
       serviceAccountName: openshift-gitops-argocd-application-controller
-      containers:
-      - name: argocd-cli
-        image: argoproj/argocd:v2.6.15
-        imagePullPolicy: IfNotPresent
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-          runAsNonRoot: true
-          seccompProfile:
-            type: RuntimeDefault
-        env:
-          - name: ARGOCD_SERVER
-            value: "openshift-gitops-server.openshift-gitops.svc.cluster.local:443"
-          - name: ARGOCD_USERNAME
-            value: "admin"
-          - name: ARGOCD_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: openshift-gitops-cluster
-                key: admin.password
-          - name: HOME
-            value: /tmp
-          - name: ARGOCD_OPTS
-            value: "--insecure"
-        command:
-          - /bin/sh
-          - -c
-          - |
-            echo " ARGOCD CLEANUP JOB - INICIANDO"
-
-            echo "=== Fazendo login no ArgoCD interno ==="
-            argocd login $ARGOCD_SERVER \
-              --username $ARGOCD_USERNAME \
-              --password $ARGOCD_PASSWORD \
-              --insecure
-
-            echo "=== Listando apps existentes ==="
-            argocd app list $ARGOCD_OPTS --output name > apps.txt
-            cat apps.txt
-
-            if [ ! -s apps.txt ]; then
-              echo "Nenhum app encontrado. Nada para deletar."
-              exit 0
-            fi
-
-            echo "=== Deletando apps ==="
-            for app in $(kubectl get applications -n openshift-gitops -o name); do
-              if kubectl get $app -n openshift-gitops | grep -q 'Deleting'; then
-                echo "Removendo finalizer de $app travado..."
-                kubectl patch $app -n openshift-gitops -p '{"metadata":{"finalizers":null}}' --type=merge
-              fi
-            done
-
-            echo " ARGOCD CLEANUP CONCLUÍDO"
       restartPolicy: Never
+      containers:
+        - name: argocd-cleanup
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo " ARGOCD CLEANUP JOB - INICIANDO"
+
+              echo "=== Instalando argocd CLI ==="
+              curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v2.11.0/argocd-linux-amd64
+              chmod +x /usr/local/bin/argocd
+
+              echo "=== Fazendo login no ArgoCD interno ==="
+              argocd login $ARGOCD_SERVER \
+                --username $ARGOCD_USERNAME \
+                --password $ARGOCD_PASSWORD \
+                --insecure
+
+              echo "=== Listando apps existentes ==="
+              argocd app list --output name > apps.txt
+              cat apps.txt || true
+
+              if [ ! -s apps.txt ]; then
+                echo "Nenhum app encontrado. Nada para deletar."
+                exit 0
+              fi
+
+              echo "=== Deletando apps com cascade + force ==="
+              for app in $(cat apps.txt); do
+                echo "Deletando $app ..."
+                argocd app delete $app --cascade --yes --force || true
+              done
+
+              echo "=== Limpando possíveis finalizers travados ==="
+              for app in $(cat apps.txt); do
+                echo "Removendo finalizers de $app ..."
+                oc patch app $app -n openshift-gitops --type=merge -p '{"metadata":{"finalizers":[]}}' || true
+              done
+
+              echo " ARGOCD CLEANUP CONCLUÍDO"
+          env:
+            - name: ARGOCD_SERVER
+              value: "openshift-gitops-server.openshift-gitops.svc.cluster.local:443"
+            - name: ARGOCD_USERNAME
+              value: "admin"
+            - name: ARGOCD_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: openshift-gitops-cluster
+                  key: admin.password
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
