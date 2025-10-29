@@ -11,8 +11,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: argocd-cleanup
-          # Imagem base com 'oc', 'bash', 'curl' e suporte a instalação de binários
-          image: registry.access.redhat.com/ubi9/ubi:latest
+          image: registry.redhat.io/openshift4/ose-cli:latest
           imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
@@ -21,14 +20,17 @@ spec:
               set -euo pipefail
               echo "=== ARGOCD CLEANUP JOB - INICIANDO ==="
 
-              echo "=== Instalando utilitários necessários (argocd, jq) ==="
-              dnf install -y jq curl tar gzip
+              echo "=== Preparando ambiente ==="
+              mkdir -p /tmp/bin /tmp/.config
+              export PATH=$PATH:/tmp/bin
+              export HOME=/tmp
+              export ARGOCD_CONFIG_DIR=/tmp/.config
 
-              echo "=== Instalando ArgoCD CLI ==="
-              curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v2.11.0/argocd-linux-amd64
-              chmod +x /usr/local/bin/argocd
+              echo "=== Instalando ArgoCD CLI em /tmp ==="
+              curl -sSL -o /tmp/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v2.11.0/argocd-linux-amd64
+              chmod +x /tmp/bin/argocd
 
-              echo "=== Fazendo login no cluster com oc ==="
+              echo "=== Fazendo login no cluster via oc ==="
               export KUBECONFIG=/tmp/kubeconfig
               api_url=$(oc get Infrastructure cluster -o jsonpath='{.status.apiServerURL}')
               oc login "${api_url}" \
@@ -57,10 +59,10 @@ spec:
                 oc patch application.argoproj.io "$appname" -n openshift-gitops --type merge -p '{"metadata":{"finalizers":null}}' || true
               done
 
-              echo "=== ARGOCD CLEANUP CONCLUÍDO  ==="
+              echo "=== ARGOCD CLEANUP CONCLUÍDO ✅ ==="
           securityContext:
             allowPrivilegeEscalation: false
-            runAsNonRoot: false
+            runAsNonRoot: true
             capabilities:
               drop:
                 - ALL
