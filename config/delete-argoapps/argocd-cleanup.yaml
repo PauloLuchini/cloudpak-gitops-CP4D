@@ -59,7 +59,7 @@ spec:
                 oc patch application.argoproj.io "$appname" -n openshift-gitops --type merge -p '{"metadata":{"finalizers":null}}' || true
               done
 
-              echo "=== ARGOCD CLEANUP CONCLUÍDO ✅ ==="
+              echo "=== ARGOCD CLEANUP CONCLUÍDO  ==="
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
