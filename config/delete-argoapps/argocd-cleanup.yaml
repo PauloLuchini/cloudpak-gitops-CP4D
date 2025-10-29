@@ -5,15 +5,59 @@ metadata:
   namespace: openshift-gitops
 spec:
   backoffLimit: 0
-  ttlSecondsAfterFinished: 300
   template:
     spec:
       serviceAccountName: openshift-gitops-argocd-application-controller
       restartPolicy: Never
       containers:
         - name: argocd-cleanup
-          image: registry.redhat.io/openshift4/ubi9/ubi-minimal:latest
+          # Imagem base com 'oc', 'bash', 'curl' e suporte a instalação de binários
+          image: registry.access.redhat.com/ubi9/ubi:latest
           imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -euo pipefail
+              echo "=== ARGOCD CLEANUP JOB - INICIANDO ==="
+
+              echo "=== Instalando utilitários necessários (argocd, jq) ==="
+              dnf install -y jq curl tar gzip
+
+              echo "=== Instalando ArgoCD CLI ==="
+              curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/download/v2.11.0/argocd-linux-amd64
+              chmod +x /usr/local/bin/argocd
+
+              echo "=== Fazendo login no cluster com oc ==="
+              export KUBECONFIG=/tmp/kubeconfig
+              api_url=$(oc get Infrastructure cluster -o jsonpath='{.status.apiServerURL}')
+              oc login "${api_url}" \
+                --token="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+                --insecure-skip-tls-verify
+
+              echo "=== Fazendo login no ArgoCD interno ==="
+              argocd login openshift-gitops-server.openshift-gitops.svc.cluster.local:443 \
+                --username admin \
+                --password "$(oc get secret openshift-gitops-cluster -n openshift-gitops -o jsonpath='{.data.admin\.password}' | base64 -d)" \
+                --insecure
+
+              echo "=== Deletando apps na ordem correta (filhos → pais) ==="
+              declare -a APPS=(
+                "openshift-gitops/cp4d-platform"
+                "openshift-gitops/cp4d-app"
+                "openshift-gitops/cp-shared-operators"
+                "openshift-gitops/cp-shared-app"
+                "openshift-gitops/argo-app"
+              )
+
+              for app in "${APPS[@]}"; do
+                echo "Deletando $app ..."
+                argocd app delete "$app" --cascade --yes || echo "Falha ao deletar $app, tentando remover finalizer..."
+                appname=$(echo "$app" | cut -d'/' -f2)
+                oc patch application.argoproj.io "$appname" -n openshift-gitops --type merge -p '{"metadata":{"finalizers":null}}' || true
+              done
+
+              echo "=== ARGOCD CLEANUP CONCLUÍDO  ==="
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
@@ -22,67 +66,3 @@ spec:
                 - ALL
             seccompProfile:
               type: RuntimeDefault
-          command:
-            - /bin/bash
-            - -c
-            - |
-              set -eo pipefail
-              echo "=== ARGOCD CLEANUP JOB - INICIANDO ==="
-
-              # Diretórios temporários seguros
-              export HOME=/tmp
-              export ARGOCD_CONFIG_DIR=/tmp/.argocd
-              mkdir -p $ARGOCD_CONFIG_DIR
-              export KUBECONFIG=/tmp/kubeconfig
-
-              # Login no cluster via ServiceAccount
-              api_url=$(oc get Infrastructure cluster -o jsonpath='{.status.apiServerURL}')
-              oc login "${api_url}" --token="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" --insecure-skip-tls-verify
-
-              echo "=== Instalando ArgoCD CLI ==="
-              wget -q -O /tmp/argocd https://github.com/argoproj/argo-cd/releases/download/v3.1.9/argocd-linux-amd64
-              chmod +x /tmp/argocd
-
-              echo "=== Instalando jq ==="
-              microdnf install -y jq > /dev/null
-
-              echo "=== Fazendo login no ArgoCD interno ==="
-              /tmp/argocd login $ARGOCD_SERVER \
-                --username $ARGOCD_USERNAME \
-                --password $ARGOCD_PASSWORD \
-                --insecure
-
-              echo "=== Listando apps existentes ==="
-              /tmp/argocd app list --output name > /tmp/apps.txt || true
-              cat /tmp/apps.txt || true
-
-              if [ ! -s /tmp/apps.txt ]; then
-                echo "Nenhum app encontrado. Nada para deletar."
-                exit 0
-              fi
-
-              echo "=== Deletando apps com cascade por projeto ==="
-              for app in $(cat /tmp/apps.txt); do
-                ns=$(echo $app | cut -d'/' -f1)
-                name=$(echo $app | cut -d'/' -f2)
-
-                project=$(/tmp/argocd app get $name -o json | jq -r '.spec.project')
-
-                echo "Deletando $app (projeto ArgoCD: $project) ..."
-                /tmp/argocd app delete $name --cascade --yes --project $project || true
-
-                echo "Removendo finalizers de $app ..."
-                oc patch app $name -n $ns --type=merge -p '{"metadata":{"finalizers":[]}}' || true
-              done
-
-              echo "=== ARGOCD CLEANUP CONCLUÍDO  ==="
-          env:
-            - name: ARGOCD_SERVER
-              value: "openshift-gitops-server.openshift-gitops.svc.cluster.local:443"
-            - name: ARGOCD_USERNAME
-              value: "admin"
-            - name: ARGOCD_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: openshift-gitops-cluster
-                  key: admin.password
