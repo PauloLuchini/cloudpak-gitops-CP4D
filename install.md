@@ -200,7 +200,7 @@ After completing the list of activities listed in the previous sections, you can
     | Project | default |
     | Sync policy | Automatic |
     | Self Heal | true |
-    | Repository URL | <https://github.com/IBM/cloudpak-gitops> |
+    | Repository URL | <https://github.com/PauloLuchini/cloudpak-gitops-CP4D> |
     | Revision | HEAD |
     | Cluster URL | <https://kubernetes.default.svc> |
 
@@ -216,7 +216,7 @@ After completing the list of activities listed in the previous sections, you can
     | Project | default |
     | Sync policy | Automatic |
     | Self Heal | true |
-    | Repository URL | <https://github.com/IBM/cloudpak-gitops> |
+    | Repository URL | <https://github.com/PauloLuchini/cloudpak-gitops-CP4D> |
     | Revision | HEAD |
     | Cluster URL | <https://kubernetes.default.svc> |
 
@@ -251,7 +251,7 @@ After completing the list of activities listed in the previous sections, you can
     | Project | default |
     | Sync policy | Automatic |
     | Self Heal | true |
-    | Repository URL | <https://github.com/IBM/cloudpak-gitops> |
+    | Repository URL | <https://github.com/PauloLuchini/cloudpak-gitops-CP4D> |
     | Revision | HEAD |
     | Cluster URL | <https://kubernetes.default.svc> |
 
