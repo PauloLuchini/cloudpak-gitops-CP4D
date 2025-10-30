@@ -44,19 +44,17 @@ spec:
                 --insecure
 
               echo "=== Deletando apps na ordem correta (filhos → pais) ==="
+            
               declare -a APPS=(
                 "openshift-gitops/cp4d-platform"
                 "openshift-gitops/cp4d-app"
                 "openshift-gitops/cp-shared-operators"
                 "openshift-gitops/cp-shared-app"
-                "openshift-gitops/argo-app"
               )
 
               for app in "${APPS[@]}"; do
                 echo "Deletando $app ..."
-                argocd app delete "$app" --cascade --yes || echo "Falha ao deletar $app, tentando remover finalizer..."
-                appname=$(echo "$app" | cut -d'/' -f2)
-                oc patch application.argoproj.io "$appname" -n openshift-gitops --type merge -p '{"metadata":{"finalizers":null}}' || true
+                argocd app delete "$app" --cascade --yes 
               done
 
               echo "=== ARGOCD CLEANUP CONCLUÍDO  ==="
