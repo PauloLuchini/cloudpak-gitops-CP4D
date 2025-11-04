@@ -34,6 +34,8 @@ spec:
               value: {{.Values.version}}
             - name: COMPONENTS
               value: {{.Values.components}}
+            - name: UPGRADE
+              value: true
           command:
             - /bin/bash
             - -c
