@@ -36,8 +36,6 @@ spec:
               value: {{.Values.components}}
             - name: CPD_CLI_MANAGE_WORKSPACE
               value: /tmp
-            - name: UPGRADE
-              value: true
           command:
             - /bin/bash
             - -c
@@ -93,7 +91,7 @@ spec:
                   --components=${COMPONENTS} \
                   --cpd_operator_ns=${PROJECT_CPD_INST_OPERATORS} \
                   --no-signature-verify \
-                  --upgrade=${UPGRADE} \
+                  --upgrade=true \
               || result=1
 
               # https://www.ibm.com/docs/en/cloud-paks/cp-data/4.8.x?topic=data-specifying-privileges-that-db2u-runs
