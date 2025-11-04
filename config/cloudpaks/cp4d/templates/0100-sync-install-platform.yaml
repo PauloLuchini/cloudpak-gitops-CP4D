@@ -66,7 +66,7 @@ spec:
                   --block_storage_class=${STG_CLASS_BLOCK:?} \
                   --file_storage_class=${STG_CLASS_FILE:?} \
                   --license_acceptance=true \
-                  --upgrade=true \
+                  # --upgrade=true \
               && bin/get-cr-status \
                   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
               && echo "INFO: CP4D installation complete." \
