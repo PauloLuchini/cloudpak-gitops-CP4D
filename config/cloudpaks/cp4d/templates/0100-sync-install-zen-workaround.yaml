@@ -36,13 +36,13 @@ spec:
               set -x
 
               patch_needed=0
-              if [[ ${COMPONENTS:?} =~ cognos_analytics ]] \
-                  || [[ ${COMPONENTS} =~ db2 ]] \
-                  || [[ ${COMPONENTS} =~ bigsql ]] \
-                  || [[ ${COMPONENTS} =~ wkc ]] \
-                  || [[ ${COMPONENTS} =~ wml_accelerator ]]; then
-                  patch_needed=1
-              fi
+              # if [[ ${COMPONENTS:?} =~ cognos_analytics ]] \
+              #     || [[ ${COMPONENTS} =~ db2 ]] \
+              #     || [[ ${COMPONENTS} =~ bigsql ]] \
+              #     || [[ ${COMPONENTS} =~ wkc ]] \
+              #     || [[ ${COMPONENTS} =~ wml_accelerator ]]; then
+              #     patch_needed=1
+              # fi
 
               if [ ${patch_needed} -eq 0 ]; then
                   exit 0
