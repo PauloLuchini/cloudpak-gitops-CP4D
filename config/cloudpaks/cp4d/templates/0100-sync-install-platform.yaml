@@ -74,7 +74,7 @@ spec:
                   echo "ERROR: CP4D installation failed."
                   result=1
               }
-            #  --upgrade=true 
+
 
               exit ${result}
 
