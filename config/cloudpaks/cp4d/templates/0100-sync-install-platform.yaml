@@ -60,6 +60,7 @@ spec:
               # https://www.ibm.com/docs/en/cloud-paks/cp-data/4.8.x?topic=data-installing-cloud-pak
               echo "INFO: Installing components in a specialized installation." \
               && bin/apply-cr \
+                  --upgrade=true \
                   --components=${COMPONENTS:?} \
                   --release=${VERSION} \
                   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS:?} \
@@ -73,6 +74,7 @@ spec:
                   echo "ERROR: CP4D installation failed."
                   result=1
               }
+            #  --upgrade=true 
 
               exit ${result}
 
