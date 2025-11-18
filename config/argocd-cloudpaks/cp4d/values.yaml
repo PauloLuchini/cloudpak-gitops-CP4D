@@ -1,6 +1,6 @@
 ---
 repoURL: https://github.com/PauloLuchini/cloudpak-gitops-CP4D
-targetRevision: Development
+targetRevision: SDG
 serviceaccount:
   argocd_application_controller: openshift-gitops-argocd-application-controller
 metadata:
