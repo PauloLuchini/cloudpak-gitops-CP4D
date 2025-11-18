@@ -62,12 +62,14 @@ spec:
                 watsonx_ai:
                   lite_install: true
                   tuning_disabled: true
+                  runtime_config:
+                    use_gpu: false
                   install_model_list:
-                    - granite-4.0-nano-350m   
-                    - granite-4.0-nano-1.5b   
+                    - granite-4.0-nano-350m
+                    - granite-4.0-nano-1.5b
                     - granite-4.0-micro-3b
               EOF
-
+              
               # https://www.ibm.com/docs/en/cloud-paks/cp-data/4.8.x?topic=data-installing-cloud-pak
               echo "INFO: Installing components in a specialized installation." \
               && bin/apply-cr \
