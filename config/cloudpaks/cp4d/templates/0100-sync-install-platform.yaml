@@ -57,17 +57,10 @@ spec:
                   COMPONENTS=${COMPONENTS/,rstudio/}
               fi
 
-              cat <<EOF > /tmp/install-options.yml
+              cat <<EOF > ./cpd-cli-workspace/olm-utils-workspace/work/install-options.yml
               custom_spec:
                 watsonx_ai:
-                  lite_install: true
                   tuning_disabled: true
-                  runtime_config:
-                    use_gpu: false
-                  install_model_list:
-                    - granite-4.0-nano-350m
-                    - granite-4.0-nano-1.5b
-                    - granite-4.0-micro-3b
               EOF
               
               # https://www.ibm.com/docs/en/cloud-paks/cp-data/4.8.x?topic=data-installing-cloud-pak
@@ -79,7 +72,7 @@ spec:
                   --block_storage_class=${STG_CLASS_BLOCK:?} \
                   --file_storage_class=${STG_CLASS_FILE:?} \
                   --license_acceptance=true \
-                  --param-file=/tmp/install-options.yml \
+                  --param-file=/tmp/work/install-options.yml \
               && bin/get-cr-status \
                   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
               && echo "INFO: CP4D installation complete." \
