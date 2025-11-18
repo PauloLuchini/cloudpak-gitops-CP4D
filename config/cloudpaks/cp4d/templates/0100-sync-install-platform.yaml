@@ -57,6 +57,17 @@ spec:
                   COMPONENTS=${COMPONENTS/,rstudio/}
               fi
 
+              cat <<EOF > /tmp/install-options.yml
+              custom_spec:
+                watsonx_ai:
+                  lite_install: true
+                  tuning_disabled: true
+                  install_model_list:
+                    - granite-4.0-nano-350m   
+                    - granite-4.0-nano-1.5b   
+                    - granite-4.0-micro-3b
+              EOF
+
               # https://www.ibm.com/docs/en/cloud-paks/cp-data/4.8.x?topic=data-installing-cloud-pak
               echo "INFO: Installing components in a specialized installation." \
               && bin/apply-cr \
@@ -66,6 +77,7 @@ spec:
                   --block_storage_class=${STG_CLASS_BLOCK:?} \
                   --file_storage_class=${STG_CLASS_FILE:?} \
                   --license_acceptance=true \
+                  --param-file=/tmp/install-options.yml \
               && bin/get-cr-status \
                   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
               && echo "INFO: CP4D installation complete." \
