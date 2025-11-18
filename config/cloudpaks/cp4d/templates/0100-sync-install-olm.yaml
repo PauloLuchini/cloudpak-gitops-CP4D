@@ -91,9 +91,7 @@ spec:
                   --components=${COMPONENTS} \
                   --cpd_operator_ns=${PROJECT_CPD_INST_OPERATORS} \
                   --no-signature-verify \
-                  --upgrade=true \
               || result=1
-              # --upgrade=true 
               # https://www.ibm.com/docs/en/cloud-paks/cp-data/4.8.x?topic=data-specifying-privileges-that-db2u-runs
               oc apply -f - <<EOF
               apiVersion: v1
