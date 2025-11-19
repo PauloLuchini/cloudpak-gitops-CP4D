@@ -57,7 +57,7 @@ spec:
                   COMPONENTS=${COMPONENTS/,rstudio/}
               fi
 
-              cat <<EOF > /cpd-cli-workspace/olm-utils-workspace/work/install-options.yml
+              cat <<EOF > /tmp/install-options.yml
               custom_spec:
                 watsonx_ai:
                   tuning_disabled: true
@@ -72,7 +72,7 @@ spec:
                   --block_storage_class=${STG_CLASS_BLOCK:?} \
                   --file_storage_class=${STG_CLASS_FILE:?} \
                   --license_acceptance=true \
-                  --param-file=/tmp/work/install-options.yml \
+                  --param-file=/tmp/install-options.yml \
               && bin/get-cr-status \
                   --cpd_instance_ns=${PROJECT_CPD_INST_OPERANDS} \
               && echo "INFO: CP4D installation complete." \
