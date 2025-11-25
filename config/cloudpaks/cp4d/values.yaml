@@ -11,6 +11,8 @@ metadata:
 
 components: "set in parent app"
 
+upgrade: "set in parent app"
+
 storageclass:
   rwo: "set in presync-hook of parent app"
   rwx: "set in presync-hook of parent app"
