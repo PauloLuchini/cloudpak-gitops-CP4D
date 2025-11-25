@@ -12,6 +12,8 @@ metadata:
 # https://www.ibm.com/docs/en/cloud-paks/cp-data/4.8.x?topic=information-determining-which-components-install
 components: ibm-cert-manager,ibm-licensing,cpfs,cpd_platform,wkc
 
+upgrade: false
+
 storageclass:
   rwo: ocs-storagecluster-ceph-rbd
   rwx: ocs-storagecluster-cephfs
