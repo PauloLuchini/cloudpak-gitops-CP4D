@@ -37,7 +37,7 @@ spec:
             - name: CPD_CLI_MANAGE_WORKSPACE
               value: /tmp
             - name: UPGRADE
-              value: {{.Values.upgrade}}
+              value: "{{.Values.upgrade}}"
           command:
             - /bin/bash
             - -c
