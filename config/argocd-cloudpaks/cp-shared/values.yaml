@@ -1,6 +1,6 @@
 ---
 repoURL: https://github.com/PauloLuchini/cloudpak-gitops-CP4D
-targetRevision: Development
+targetRevision: DSAnywhere
 serviceaccount:
   ibm_cloudpaks_installer: ibm-cloudpaks-installer
   argocd_application_controller: openshift-gitops-argocd-application-controller
