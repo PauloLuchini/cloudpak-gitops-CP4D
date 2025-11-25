@@ -46,6 +46,8 @@ spec:
           value: ${ARGOCD_APP_SOURCE_TARGET_REVISION}
         - name: version
           value: {{.Values.version}}
+        - name: UPGRADE
+          value: {{.Values.upgrade}}
     path: config/argocd-cloudpaks/cp4d
     repoURL: {{.Values.repoURL}}
     targetRevision: {{.Values.targetRevision}}
