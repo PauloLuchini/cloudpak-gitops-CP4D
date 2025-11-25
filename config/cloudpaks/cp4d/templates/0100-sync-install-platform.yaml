@@ -35,7 +35,7 @@ spec:
             - name: COMPONENTS
               value: {{.Values.components}}
             - name: UPGRADE
-              value: {{.Values.upgrade}}
+              value: "{{.Values.upgrade}}"
           command:
             - /bin/bash
             - -c
